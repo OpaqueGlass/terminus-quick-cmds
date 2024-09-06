@@ -11,10 +11,11 @@ import { BaseTerminalTabComponent as TerminalTabComponent } from 'terminus-termi
 })
 export class QuickCmdsModalComponent {
     cmds: QuickCmds[]
-    quickCmd: string
+    quickCmd: string = ''
     appendCR: boolean
     childGroups: ICmdGroup[]
     groupCollapsed: {[id: string]: boolean} = {}
+    selectedIndex: number = -1  // 用于追踪选中的命令索引
 
     constructor (
         public modalInstance: NgbActiveModal,
@@ -49,12 +50,13 @@ export class QuickCmdsModalComponent {
         }
         if (tab instanceof TerminalTabComponent) {
             let currentTab = tab as TerminalTabComponent
-
+            console.log("tab", currentTab);
             console.log("Sending " + cmd);
 
             let cmds=cmd.split(/(?:\r\n|\r|\n)/)
 
-            for(let cmd of cmds) {
+            for(let i = 0; i < cmds.length; i++) {
+                let cmd = cmds[i];
                 console.log("Sending " + cmd);
 
 
@@ -73,9 +75,10 @@ export class QuickCmdsModalComponent {
                             return String.fromCharCode(parseInt(pair, 16));
                         });
                 }
-
-                currentTab.sendInput(cmd+"\n");
-                
+                if (i != cmds.length - 1) {
+                    cmd = cmd + "\n";
+                }
+                currentTab.sendInput(cmd);
             }
 
         }
@@ -99,6 +102,7 @@ export class QuickCmdsModalComponent {
     }
 
     send (cmd: QuickCmds, event: MouseEvent) {
+        console.log("cmd", cmd.text, "appendCR", cmd.appendCR)
         if (event.ctrlKey) {
             this._sendAll(cmd.text + (cmd.appendCR ? "\n" : ""))
         }
@@ -128,10 +132,11 @@ export class QuickCmdsModalComponent {
 
     refresh () {
         this.childGroups = []
+        this.selectedIndex = -1
 
         let cmds = this.cmds
         if (this.quickCmd) {
-            cmds = cmds.filter(cmd => (cmd.name + cmd.group + cmd.text).toLowerCase().includes(this.quickCmd))
+            cmds = cmds.filter(cmd => (cmd.name + cmd.group + cmd.text).toLowerCase().includes(this.quickCmd.toLowerCase()))
         }
 
         for (let cmd of cmds) {
@@ -145,6 +150,26 @@ export class QuickCmdsModalComponent {
                 this.childGroups.push(group)
             }
             group.cmds.push(cmd)
+        }
+    }
+
+    handleKeydown(event: KeyboardEvent) {
+        if (event.key === 'ArrowDown') {
+            this.selectedIndex = (this.selectedIndex + 1) % this.childGroups.length
+            event.preventDefault()
+        } else if (event.key === 'ArrowUp') {
+            this.selectedIndex = (this.selectedIndex - 1 + this.childGroups.length) % this.childGroups.length
+            event.preventDefault()
+        } else if (event.key === 'Enter') {
+            if (this.selectedIndex >= 0 && this.selectedIndex < this.childGroups.length) {
+                const group = this.childGroups[this.selectedIndex]
+                if (group.cmds.length > 0) {
+                    this.send(group.cmds[0], new MouseEvent('click', {ctrlKey: event.ctrlKey}))
+                }
+            } else {
+                this.quickSend()
+            }
+            event.preventDefault()
         }
     }
 }
