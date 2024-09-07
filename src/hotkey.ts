@@ -6,7 +6,7 @@ import { HotkeyDescription, HotkeyProvider } from 'terminus-core'
 export class QuickCmdsHotkeyProvider extends HotkeyProvider {
     hotkeys: HotkeyDescription[] = [
         {
-            id: 'quick-cmds.show',
+            id: 'quick-cmds-show',
             name:'Open quick cmds panel',
         },
     ]
@@ -15,8 +15,6 @@ export class QuickCmdsHotkeyProvider extends HotkeyProvider {
     ) { super() }
 
     async provide (): Promise<HotkeyDescription[]> {
-        return [
-            ...this.hotkeys
-        ]
+        return this.hotkeys
     }
 }
