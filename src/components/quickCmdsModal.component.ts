@@ -16,6 +16,7 @@ export class QuickCmdsModalComponent {
     childGroups: ICmdGroup[]
     groupCollapsed: {[id: string]: boolean} = {}
     selectedIndex: number = -1  // 用于追踪选中的命令索引
+    selectedGroupIndex: number = 0  // 用于追踪选中的组索引
 
     constructor (
         public modalInstance: NgbActiveModal,
@@ -155,10 +156,16 @@ export class QuickCmdsModalComponent {
 
     handleKeydown(event: KeyboardEvent) {
         if (event.key === 'ArrowDown') {
-            this.selectedIndex = (this.selectedIndex + 1) % this.childGroups.length
+            this.selectNextCmd();
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            // this.selectedIndex = (this.selectedIndex + 1) % this.childGroups.length
             event.preventDefault()
         } else if (event.key === 'ArrowUp') {
-            this.selectedIndex = (this.selectedIndex - 1 + this.childGroups.length) % this.childGroups.length
+            // this.selectedIndex = (this.selectedIndex - 1 + this.childGroups.length) % this.childGroups.length
+            this.selectPreviousCmd();
+            event.stopImmediatePropagation();
+            event.stopPropagation();
             event.preventDefault()
         } else if (event.key === 'Enter') {
             if (this.selectedIndex >= 0 && this.selectedIndex < this.childGroups.length) {
@@ -170,6 +177,29 @@ export class QuickCmdsModalComponent {
                 this.quickSend()
             }
             event.preventDefault()
+        }
+    }
+    selectPreviousCmd() {
+        if (this.selectedIndex > 0) {
+            this.selectedIndex--;
+        } else if (this.selectedGroupIndex > 0) {
+            this.selectedGroupIndex--;
+            this.selectedIndex = this.childGroups[this.selectedGroupIndex].cmds.length - 1;
+        } else {
+            this.selectedGroupIndex = this.childGroups.length - 1;
+            this.selectedIndex = this.childGroups[this.selectedGroupIndex].cmds.length - 1;
+        }
+    }
+    
+    selectNextCmd() {
+        if (this.selectedIndex < this.childGroups[this.selectedGroupIndex].cmds.length - 1) {
+            this.selectedIndex++;
+        } else if (this.selectedGroupIndex < this.childGroups.length - 1) {
+            this.selectedGroupIndex++;
+            this.selectedIndex = 0;
+        } else {
+            this.selectedGroupIndex = 0;
+            this.selectedIndex = 0;
         }
     }
 }

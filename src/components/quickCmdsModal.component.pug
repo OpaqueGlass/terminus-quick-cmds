@@ -24,8 +24,8 @@
                 .ml-2 {{group.name || "Ungrouped"}}
             ng-container(*ngIf='!groupCollapsed[group.name]')
                 .list-group-item.list-group-item-action.pl-5.d-flex.align-items-center(
-                    *ngFor='let cmd of group.cmds', 
-                    [ngClass]="{'active': i === selectedIndex}", 
+                    *ngFor='let cmd of group.cmds; let j = index', 
+                    [ngClass]="{'active': i === selectedGroupIndex && j === selectedIndex}", 
                     (click)='send(cmd, $event)',
                     title="Ctrl + Click send to all",
                 )
